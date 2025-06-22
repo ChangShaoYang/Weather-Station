@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Data Dashboard</title>
+    <script src="/highcharts.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h2 {
+            font-family: Arial;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+            max-width: 800px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h2>Environmental Data Dashboard</h2>
+    <div id="chart-temperature" class="container"></div>
+    <div id="chart-pressure" class="container"></div>
+    <div id="chart-humidity" class="container"></div>
+    <div id="chart-windmph" class="container"></div>
+    <div id="chart-oxygen" class="container"></div>
+    <div id="chart-co2" class="container"></div>
+    <button class="button" onclick="showHistory()">Show History</button>
+    
+    <script>
+        var chartT = new Highcharts.Chart({
+            chart:{ renderTo : 'chart-temperature' },
+            title: { text: 'Temperature (Celsius)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#059e8a' }
+            },
+            xAxis: { type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'Temperature (Celsius)' }
+            },
+            credits: { enabled: false }
+        });
+
+        var chartP = new Highcharts.Chart({
+            chart:{ renderTo : 'chart-pressure' },
+            title: { text: 'Pressure (hPa)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#e74c3c' }
+            },
+            xAxis: { type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'Pressure (hPa)' }
+            },
+            credits: { enabled: false }
+        });
+
+        var chartH = new Highcharts.Chart({
+            chart:{ renderTo:'chart-humidity' },
+            title: { text: 'Humidity (%)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#3498db' }
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'Humidity (%)' }
+            },
+            credits: { enabled: false }
+        });
+
+        var chartW = new Highcharts.Chart({
+            chart:{ renderTo:'chart-windmph' },
+            title: { text: 'Wind Speed (MPH)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#f39c12' }
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'Wind Speed (MPH)' }
+            },
+            credits: { enabled: false }
+        });
+
+        var chartO = new Highcharts.Chart({
+            chart:{ renderTo:'chart-oxygen' },
+            title: { text: 'Oxygen Level (%)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#2ecc71' }
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'Oxygen Level (%)' }
+            },
+            credits: { enabled: false }
+        });
+
+        var chartC = new Highcharts.Chart({
+            chart:{ renderTo:'chart-co2' },
+            title: { text: 'CO2 Level (ppm)' },
+            series: [{
+                showInLegend: false,
+                data: []
+            }],
+            plotOptions: {
+                line: { animation: false,
+                    dataLabels: { enabled: true }
+                },
+                series: { color: '#8e44ad' }
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { second: '%H:%M:%S' }
+            },
+            yAxis: {
+                title: { text: 'CO2 Level (ppm)' }
+            },
+            credits: { enabled: false }
+        });
+
+        function updateCharts() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    var x = (new Date()).getTime() + (8 * 60 * 60 * 1000);
+                    var y;
+
+                    y = parseFloat(data[0]);
+                    if(chartT.series[0].data.length > 40) {
+                        chartT.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartT.series[0].addPoint([x, y], true, false, true);
+                    }
+
+                    y = parseFloat(data[1]);
+                    if(chartP.series[0].data.length > 40) {
+                        chartP.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartP.series[0].addPoint([x, y], true, false, true);
+                    }
+
+                    y = parseFloat(data[2]);
+                    if(chartH.series[0].data.length > 40) {
+                        chartH.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartH.series[0].addPoint([x, y], true, false, true);
+                    }
+
+                    y = parseFloat(data[3]);
+                    if(chartW.series[0].data.length > 40) {
+                        chartW.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartW.series[0].addPoint([x, y], true, false, true);
+                    }
+
+                    y = parseFloat(data[4]);
+                    if(chartO.series[0].data.length > 40) {
+                        chartO.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartO.series[0].addPoint([x, y], true, false, true);
+                    }
+
+                    y = parseFloat(data[5]);
+                    if(chartC.series[0].data.length > 40) {
+                        chartC.series[0].addPoint([x, y], true, true, true);
+                    } else {
+                        chartC.series[0].addPoint([x, y], true, false, true);
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        setInterval(updateCharts, 5000);
+
+        function showHistory() {
+            window.location.href = '/history';
+        }
+    </script>
+</body>
+</html>
